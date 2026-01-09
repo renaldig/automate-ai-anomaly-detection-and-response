@@ -1,0 +1,19 @@
+let lookback = 24h;
+let step = 5m;
+let scoreThreshold = 3.0;
+
+AppRequests
+| where TimeGenerated >= ago(lookback)
+| make-series FailedRequests = countif(Success == false) default=0
+    on TimeGenerated from ago(lookback) to now() step step
+| extend (AnomalyFlags, AnomalyScores, Baseline) = series_decompose_anomalies(FailedRequests)
+| mv-expand
+    TimeGenerated to typeof(datetime),
+    FailedRequests to typeof(long),
+    AnomalyFlags to typeof(long),
+    AnomalyScores to typeof(real),
+    Baseline to typeof(real)
+| where AnomalyFlags > 0
+| where AnomalyScores >= scoreThreshold
+| project TimeGenerated, FailedRequests, Baseline, AnomalyScores
+| order by TimeGenerated desc
