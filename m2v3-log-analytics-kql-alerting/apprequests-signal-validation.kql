@@ -1,0 +1,4 @@
+AppRequests
+| where TimeGenerated >= ago(24h)
+| summarize FailedRequests = countif(Success == false) by bin(TimeGenerated, 5m)
+| order by TimeGenerated asc
