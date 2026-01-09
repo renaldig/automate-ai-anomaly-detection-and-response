@@ -1,0 +1,24 @@
+{
+  "schemaId": "azureMonitorCommonAlertSchema",
+  "data": {
+    "essentials": {
+      "alertRule": "Example Alert Rule Name",
+      "severity": "Sev3",
+      "signalType": "Metric",
+      "monitorCondition": "Fired",
+      "monitoringService": "Platform",
+      "alertTargetIDs": [
+        "/subscriptions/<subId>/resourceGroups/<rg>/providers/Microsoft.Insights/components/<appInsightsName>"
+      ],
+      "firedDateTime": "2026-01-09T10:00:00Z",
+      "description": "Mini runbook: Open App Insights, check failures/latency, identify top operationName, inspect dependencies."
+    },
+    "alertContext": {
+      "conditionType": "SingleResourceMultipleMetricCriteria",
+      "properties": {
+        "windowSize": "PT15M",
+        "evaluationFrequency": "PT5M"
+      }
+    }
+  }
+}
