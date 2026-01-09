@@ -1,0 +1,29 @@
+// KQL anomaly starter (App Insights data in Log Analytics workspace)
+//
+// Goal: return ROWS ONLY when anomalies exist.
+// Notes:
+// - Adjust table/fields if your workspace uses a different schema.
+// - Keep it simple: start with failures per 5 minutes.
+//
+// Set the query time range in the UI (top-right) to Last 7 days (or more).
+
+let binSize = 5m;
+let scoreThreshold = 3.0;
+
+let seriesData =
+    requests
+    | where timestamp > ago(7d)
+    // Treat non-success or 5xx as "failure" (adjust as needed)
+    | where success == false or resultCode startswith "5"
+    | make-series failures=count() default=0 on timestamp step binSize;
+
+seriesData
+| extend (anomalyFlags, anomalyScores, baseline) = series_decompose_anomalies(failures, scoreThreshold, -1, 'linefit')
+| mv-expand timestamp to typeof(datetime),
+            failures to typeof(long),
+            anomalyFlags to typeof(long),
+            anomalyScores to typeof(real),
+            baseline to typeof(real)
+| where anomalyFlags == 1 and anomalyScores >= scoreThreshold
+| project timestamp, failures, baseline, anomalyScores
+| order by timestamp desc
